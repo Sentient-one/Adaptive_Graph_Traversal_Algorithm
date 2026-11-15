@@ -1,0 +1,4 @@
+algorithm,selected_algorithm,nodes,edges,density,directed,all_unit_weights,uniform_weights,has_negative_weights,source,destination,path_cost,path,median_seconds,median_explored_nodes,median_edge_scans,median_relaxation_attempts,repeats
+dijkstra,,4,5,0.8333333333333334,False,False,False,False,A,D,6.0,"[""A"", ""C"", ""B"", ""D""]",1.274999522138387e-05,4,8,0,7
+bellman_ford,,4,5,0.8333333333333334,False,False,False,False,A,D,6.0,"[""A"", ""C"", ""B"", ""D""]",1.9291997887194157e-05,,0,40,7
+adaptive,dijkstra,4,5,0.8333333333333334,False,False,False,False,A,D,6.0,"[""A"", ""C"", ""B"", ""D""]",5.750000127591193e-06,4,8,0,7
