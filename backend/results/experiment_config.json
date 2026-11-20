@@ -1,0 +1,39 @@
+{
+  "node_counts": [
+    50,
+    100,
+    200
+  ],
+  "densities": [
+    0.05,
+    0.2,
+    0.4
+  ],
+  "weight_modes": [
+    "unit",
+    "uniform",
+    "positive",
+    "negative"
+  ],
+  "coordinate_options": [
+    false,
+    true
+  ],
+  "directed_options": [
+    false,
+    true
+  ],
+  "split_seeds": {
+    "development": [
+      11,
+      22
+    ],
+    "heldout": [
+      101,
+      202
+    ]
+  },
+  "repeats": 5,
+  "selector_model": "ridge_regression",
+  "ridge_alpha": 0.001
+}

@@ -6,27 +6,7 @@ from graph.graph import Graph
 
 
 def _heuristic_scale(graph: Graph) -> float:
-    if not graph.has_positions_for_all_nodes():
-        raise ValueError("A* requires coordinates for every graph node.")
-
-    if graph.has_negative_weights():
-        raise ValueError("A* cannot handle negative edge weights.")
-
-    scale = float("inf")
-
-    for start, neighbors in graph.adjacency.items():
-        x1, y1 = graph.positions[start]
-
-        for end, weight in neighbors:
-            x2, y2 = graph.positions[end]
-            distance = math.hypot(x2 - x1, y2 - y1)
-
-            if distance > 0:
-                scale = min(scale, weight / distance)
-
-    # A zero scale makes the heuristic zero, which is safe but equivalent
-    # to Dijkstra's heuristic.
-    return 0.0 if scale == float("inf") else scale
+    return graph.heuristic_scale()
 
 
 def shortest_path(graph: Graph, source: str, destination: str) -> dict:

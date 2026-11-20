@@ -11,13 +11,16 @@ def generate_random_graph(
     weighted: bool = False,
     directed: bool = False,
     seed: int | None = None,
+    weight_mode: str | None = None,
+    coordinates: bool = True,
 ) -> Graph:
     """
     Generate a reproducible random graph.
 
-    weighted=False: every edge has weight 1.
-    weighted=True: every edge receives a random positive weight.
-    directed=True: edges have a direction.
+    weight_mode may be unit, uniform, positive, or negative. Negative mode
+    uses directed edges with potential-based weights, so generated cycles are
+    positive and Bellman-Ford has no negative cycle to reject.
+    The weighted flag remains as a compatibility shortcut for positive mode.
     """
 
     if node_count < 1:
@@ -26,18 +29,26 @@ def generate_random_graph(
     if not 0 <= edge_probability <= 1:
         raise ValueError("edge_probability must be between 0 and 1")
 
+    if weight_mode is None:
+        weight_mode = "positive" if weighted else "unit"
+    if weight_mode not in {"unit", "uniform", "positive", "negative"}:
+        raise ValueError("weight_mode must be unit, uniform, positive, or negative")
+    if weight_mode == "negative" and not directed:
+        raise ValueError("negative weight mode requires a directed graph")
+
     rng = random.Random(seed)
     graph = Graph(directed=directed)
 
     nodes = [str(i) for i in range(node_count)]
 
-    # Add every node and assign coordinates for A* experiments.
+    # Coordinates can be disabled to benchmark graphs without A* eligibility.
     for node in nodes:
-        graph.set_position(
-            node,
-            x=rng.uniform(0, 100),
-            y=rng.uniform(0, 100),
-        )
+        graph.add_node(node)
+        if coordinates:
+            graph.set_position(node, x=rng.uniform(0, 100), y=rng.uniform(0, 100))
+
+    potentials = {node: rng.uniform(-8, 8) for node in nodes}
+    uniform_weight = rng.uniform(1.0, 10.0) if weight_mode == "uniform" else 1.0
 
     # Generate candidate edges.
     if directed:
@@ -56,8 +67,12 @@ def generate_random_graph(
 
     for source, destination in candidate_edges:
         if rng.random() < edge_probability:
-            if weighted:
+            if weight_mode == "positive":
                 weight = rng.uniform(1.0, 10.0)
+            elif weight_mode == "uniform":
+                weight = uniform_weight
+            elif weight_mode == "negative":
+                weight = rng.uniform(0.25, 2.0) + potentials[destination] - potentials[source]
             else:
                 weight = 1.0
 

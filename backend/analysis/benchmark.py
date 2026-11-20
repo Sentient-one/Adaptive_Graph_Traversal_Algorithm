@@ -8,6 +8,7 @@ from time import perf_counter
 from algorithms import astar, bfs, dijkstra, bellman_ford
 from adaptive.features import extract_features
 from adaptive.selector import find_shortest_path
+from analysis.metrics import measure_algorithm
 
 
 def _costs_match(first, second) -> bool:
@@ -16,7 +17,14 @@ def _costs_match(first, second) -> bool:
     return math.isclose(first, second, rel_tol=1e-9, abs_tol=1e-9)
 
 
-def benchmark_graph(graph, source: str, destination: str, repeats: int = 7) -> list[dict]:
+def benchmark_graph(
+    graph,
+    source: str,
+    destination: str,
+    repeats: int = 7,
+    performance_model=None,
+    metadata: dict | None = None,
+) -> list[dict]:
     if repeats < 1:
         raise ValueError("repeats must be at least 1")
 
@@ -82,6 +90,10 @@ def benchmark_graph(graph, source: str, destination: str, repeats: int = 7) -> l
             "directed": features["directed"],
             "all_unit_weights": features["all_unit_weights"],
             "uniform_weights": features["uniform_weights"],
+            "average_degree": features["average_degree"],
+            "weight_stddev": features["weight_stddev"],
+            "positions_available": features["positions_available"],
+            "heuristic_scale": features["heuristic_scale"],
             "has_negative_weights": features["has_negative_weights"],
             "source": source,
             "destination": destination,
@@ -93,17 +105,27 @@ def benchmark_graph(graph, source: str, destination: str, repeats: int = 7) -> l
             ),
             "median_edge_scans": statistics.median(edge_scan_counts),
             "median_relaxation_attempts": statistics.median(relaxation_counts),
+            "peak_memory_bytes": measure_algorithm(
+                run_algorithm, graph, source, destination
+            )[1]["peak_memory_bytes"],
             "repeats": repeats,
+            **(metadata or {}),
         })
 
     adaptive_durations = []
-    adaptive_results = []
+    adaptive_result = None
     for _ in range(repeats):
         start = perf_counter()
-        adaptive_result = find_shortest_path(graph, source, destination)
+        adaptive_result = find_shortest_path(
+            graph, source, destination, performance_model=performance_model
+        )
         adaptive_durations.append(perf_counter() - start)
-        adaptive_results.append(adaptive_result)
-    adaptive_result = adaptive_results[-1]
+    adaptive_memory = measure_algorithm(
+        lambda g, s, d: find_shortest_path(
+            g, s, d, performance_model=performance_model
+        ),
+        graph, source, destination,
+    )[1]["peak_memory_bytes"]
     if not _costs_match(expected_cost, adaptive_result["cost"]):
         raise AssertionError(
             f"Adaptive selector returned cost {adaptive_result['cost']}; "
@@ -112,6 +134,8 @@ def benchmark_graph(graph, source: str, destination: str, repeats: int = 7) -> l
 
     rows.append({
         "algorithm": "adaptive",
+        "selector_policy": "ridge_regression" if performance_model else "rules",
+        "ridge_alpha": performance_model.ridge if performance_model else "",
         "selected_algorithm": adaptive_result["algorithm"],
         "nodes": features["node_count"],
         "edges": features["edge_count"],
@@ -119,6 +143,10 @@ def benchmark_graph(graph, source: str, destination: str, repeats: int = 7) -> l
         "directed": features["directed"],
         "all_unit_weights": features["all_unit_weights"],
         "uniform_weights": features["uniform_weights"],
+        "average_degree": features["average_degree"],
+        "weight_stddev": features["weight_stddev"],
+        "positions_available": features["positions_available"],
+        "heuristic_scale": features["heuristic_scale"],
         "has_negative_weights": features["has_negative_weights"],
         "source": source,
         "destination": destination,
@@ -128,7 +156,9 @@ def benchmark_graph(graph, source: str, destination: str, repeats: int = 7) -> l
         "median_explored_nodes": adaptive_result["explored_nodes"],
         "median_edge_scans": adaptive_result.get("edge_scans", 0),
         "median_relaxation_attempts": adaptive_result.get("relaxation_attempts", 0),
+        "peak_memory_bytes": adaptive_memory,
         "repeats": repeats,
+        **(metadata or {}),
     })
 
     return rows
@@ -141,7 +171,7 @@ def save_results_csv(rows: list[dict], output_path: str) -> None:
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    columns = list(rows[0].keys())
+    columns = list(dict.fromkeys(key for row in rows for key in row))
     with path.open("w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=columns)
         writer.writeheader()
