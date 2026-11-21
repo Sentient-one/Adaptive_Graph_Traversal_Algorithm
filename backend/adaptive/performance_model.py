@@ -10,6 +10,19 @@ from adaptive.features import extract_selection_features
 from adaptive.selector import eligible_algorithms, choose_algorithm
 
 
+MODEL_FEATURES = (
+    "nodes",
+    "density",
+    "directed",
+    "uniform_weights",
+    "has_negative_weights",
+    "weight_stddev",
+    "positions_available",
+    "heuristic_scale",
+)
+RIDGE_ALPHA = 1e-4
+
+
 def _number(value, default=0.0) -> float:
     if isinstance(value, str) and value.strip().lower() in {
         "true", "false"
@@ -36,7 +49,6 @@ def _vector(values: dict) -> tuple[float, ...]:
         _number(values.get("directed")),
         _number(values.get("uniform_weights")),
         _number(values.get("has_negative_weights")),
-        _number(values.get("average_degree")),
         _number(values.get("weight_stddev")),
         _number(values.get("positions_available")),
         _number(values.get("heuristic_scale")),
@@ -108,7 +120,7 @@ class BenchmarkRuntimeSelector:
     def __init__(
         self,
         rows: list[dict],
-        ridge: float = 1e-3,
+        ridge: float = RIDGE_ALPHA,
     ):
         if not math.isfinite(ridge) or ridge <= 0:
             raise ValueError("ridge must be positive")
@@ -219,7 +231,7 @@ class BenchmarkRuntimeSelector:
     def from_csv(
         cls,
         path: str | Path,
-        ridge: float = 1e-3,
+        ridge: float = RIDGE_ALPHA,
     ):
         with Path(path).open(
             newline="",

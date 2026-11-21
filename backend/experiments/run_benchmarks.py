@@ -22,6 +22,7 @@ SPLIT_SEEDS = {
     "heldout": (101, 202),
 }
 REPEATS = 5
+RIDGE_ALPHA = 1e-4
 
 
 def _cases(split: str):
@@ -88,13 +89,16 @@ def main() -> None:
         "split_seeds": SPLIT_SEEDS,
         "repeats": REPEATS,
         "selector_model": "ridge_regression",
-        "ridge_alpha": 1e-3,
+        "ridge_alpha": RIDGE_ALPHA,
     }
     with (RESULTS_DIR / "experiment_config.json").open("w", encoding="utf-8") as file:
         json.dump(config, file, indent=2)
 
     development_rows = _run_split("development")
-    performance_model = BenchmarkRuntimeSelector(development_rows, ridge=1e-3)
+    performance_model = BenchmarkRuntimeSelector(
+        development_rows,
+        ridge=RIDGE_ALPHA,
+    )
 
     heldout_rows = _run_split("heldout", performance_model=performance_model)
     combined_rows = development_rows + heldout_rows

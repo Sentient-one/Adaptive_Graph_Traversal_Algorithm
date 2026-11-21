@@ -5,7 +5,12 @@ import tempfile
 import unittest
 
 from adaptive.features import extract_features
-from adaptive.performance_model import BenchmarkRuntimeSelector
+from adaptive.performance_model import (
+    BenchmarkRuntimeSelector,
+    MODEL_FEATURES,
+    RIDGE_ALPHA,
+    _vector,
+)
 from adaptive.selector import find_shortest_path
 from analysis.benchmark import benchmark_graph, save_results_csv
 from analysis.reporting import summarize_selection
@@ -16,6 +21,150 @@ from graph.graph import Graph
 
 
 class ProjectFeatureTests(unittest.TestCase):
+
+    def test_production_model_uses_model_b_features_and_selected_alpha(self):
+        self.assertEqual(
+            MODEL_FEATURES,
+            (
+                "nodes",
+                "density",
+                "directed",
+                "uniform_weights",
+                "has_negative_weights",
+                "weight_stddev",
+                "positions_available",
+                "heuristic_scale",
+            ),
+        )
+        self.assertEqual(RIDGE_ALPHA, 1e-4)
+
+        features = {
+            "node_count": 10,
+            "density": 0.2,
+            "directed": False,
+            "uniform_weights": True,
+            "has_negative_weights": False,
+            "average_degree": 123,
+            "weight_stddev": 0.5,
+            "positions_available": False,
+            "heuristic_scale": None,
+        }
+        changed_unused_feature = dict(features, average_degree=999)
+        self.assertEqual(len(_vector(features)), 8)
+        self.assertEqual(_vector(features), _vector(changed_unused_feature))
+
+    def test_model_trains_all_algorithms_and_predicts_positive_finite_values(self):
+        rows = [
+            {
+                "case_id": "case-1",
+                "algorithm": algorithm,
+                "median_seconds": runtime,
+                "nodes": 10,
+                "density": 0.2,
+                "directed": False,
+                "uniform_weights": False,
+                "has_negative_weights": False,
+                "weight_stddev": 0.5,
+                "positions_available": False,
+                "heuristic_scale": "",
+            }
+            for algorithm, runtime in (
+                ("bfs", 0.001),
+                ("dijkstra", 0.002),
+                ("astar", 0.003),
+                ("bellman_ford", 0.01),
+            )
+        ]
+
+        model = BenchmarkRuntimeSelector(rows)
+        predictions = model.predict_runtimes_from_features(rows[0])
+
+        self.assertEqual(model.ridge, RIDGE_ALPHA)
+        self.assertEqual(
+            set(model.models),
+            {"bfs", "dijkstra", "astar", "bellman_ford"},
+        )
+        self.assertEqual(set(predictions), set(model.models))
+        self.assertTrue(
+            all(math.isfinite(value) and value > 0
+                for value in predictions.values())
+        )
+
+    def test_selector_uses_lowest_predicted_eligible_algorithm(self):
+        rows = [
+            {
+                "case_id": "case-1",
+                "algorithm": algorithm,
+                "median_seconds": runtime,
+                "nodes": 3,
+                "density": 1,
+                "directed": False,
+                "uniform_weights": False,
+                "has_negative_weights": False,
+                "weight_stddev": 1,
+                "positions_available": False,
+                "heuristic_scale": "",
+            }
+            for algorithm, runtime in (
+                ("bfs", 0.001),
+                ("dijkstra", 0.002),
+                ("astar", 0.003),
+                ("bellman_ford", 0.01),
+            )
+        ]
+        model = BenchmarkRuntimeSelector(rows)
+        graph = Graph()
+        graph.set_position("A", 0, 0)
+        graph.set_position("B", 1, 0)
+        graph.set_position("C", 2, 0)
+        graph.add_edge("A", "B", 2)
+        graph.add_edge("B", "C", 3)
+        graph.add_edge("A", "C", 8)
+
+        model.predict_runtimes = lambda graph, features=None: {
+            "bfs": 0.01,
+            "dijkstra": 0.1,
+            "astar": 0.001,
+            "bellman_ford": 0.2,
+        }
+
+        # BFS is ineligible for non-uniform weights; A* has the lowest
+        # prediction among the remaining eligible algorithms.
+        self.assertEqual(model.choose_algorithm(graph, "A", "C"), "astar")
+
+    def test_unavailable_training_models_fall_back_safely(self):
+        model = BenchmarkRuntimeSelector([
+            {
+                "case_id": "case-1",
+                "algorithm": "bfs",
+                "median_seconds": 0.001,
+                "nodes": 2,
+                "density": 1,
+                "directed": True,
+                "uniform_weights": False,
+                "has_negative_weights": False,
+                "weight_stddev": 0,
+                "positions_available": False,
+                "heuristic_scale": "",
+            }
+        ])
+        graph = Graph(directed=True)
+        graph.add_edge("A", "B", -1)
+
+        # BFS has training data but is not valid for negative edges. With no
+        # trained eligible model, selection falls back to Bellman-Ford.
+        self.assertEqual(
+            model.choose_algorithm(graph, "A", "B"),
+            "bellman_ford",
+        )
+
+    def test_model_rejects_empty_or_unusable_training_data(self):
+        with self.assertRaisesRegex(ValueError, "No algorithm benchmark rows"):
+            BenchmarkRuntimeSelector([])
+        with self.assertRaisesRegex(ValueError, "No algorithm benchmark rows"):
+            BenchmarkRuntimeSelector([
+                {"algorithm": "bfs", "median_seconds": "0"}
+            ])
 
     def test_graph_rejects_nonfinite_weights_and_coordinates(self):
         graph = Graph()
