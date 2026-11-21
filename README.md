@@ -44,9 +44,10 @@ cd /Users/mac/Desktop/MyProjects/ADSA_project/backend
 ```
 
 The study uses separate fixed seed sets for development and held-out graph
-cases. It trains a nearest-neighbor runtime selector from development results,
-then evaluates a ridge-regression runtime model (alpha 0.001) on held-out cases.
-The exact graph grid, seeds, repeat count, and model setting are saved in
+cases. It trains a Ridge Regression runtime selector from development results,
+then evaluates it using Model B's eight features and alpha 0.0001 on held-out
+cases.
+Each run records its graph grid, seeds, repeat count, and model setting in
 `experiment_config.json`. Outputs are written to `backend/results/`:
 
 - `development_benchmarks.csv`: per-algorithm and rule-selector measurements
@@ -77,12 +78,16 @@ slower. These timings are machine- and workload-dependent.
   so the generator creates negative edges without creating negative cycles.
 
 The rule selector is a transparent baseline. The benchmark-trained regression
-selector is an experimental model; its held-out results must be reviewed before
-claiming it is better than the rule selector or any fixed algorithm.
+selector uses Model B's eight features and alpha 0.0001. A fresh final
+evaluation found higher winner accuracy than the rule selector, but median
+end-to-end runtime was still slower than running the fastest eligible
+individual algorithm directly. See `docs/RESEARCH_REPORT.md` before making
+performance claims.
 
 ## Research paper status
 
-The implementation now supports a reproducible comparison workflow, but the
-paper still needs a literature review, final held-out results, analysis,
-limitations, and conclusions based on those results. Do not report an
-improvement until the held-out data supports it.
+The implementation now supports a reproducible comparison workflow, and a
+fresh independent final evaluation is recorded. The paper still needs a full
+literature review, final editing, and conclusions limited to the measured
+trade-offs. The prior held-out data remains diagnostic and is not the final
+test set.
