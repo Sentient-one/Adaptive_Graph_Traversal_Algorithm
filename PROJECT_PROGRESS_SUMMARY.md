@@ -68,15 +68,22 @@ It is stored in the project root next to `README.md`.
   was 0.887× (adaptive-to-best runtime ratio 1.127×). The experiment therefore
   supports an accuracy and runtime advantage over rules, but not a runtime
   advantage over the best individual algorithm.
-- Median absolute log runtime-prediction error on the new cases was:
-  BFS 0.423, Dijkstra 0.354, A* 0.644, and Bellman–Ford 0.293. A* had the
-  highest prediction error among the four.
+- Mean absolute log runtime-prediction error on the new cases was:
+  BFS 0.524, Dijkstra 0.448, A* 0.736, and Bellman–Ford 0.321. A* had the
+  highest prediction error; its median predicted-to-actual runtime ratio was
+  0.845, indicating median underprediction.
+- Added seed-level results to
+  `backend/results/final_evaluation_seed_summary.csv` and summarized them in
+  the research report. Ridge winner accuracy ranged from 91.07% to 93.75%
+  across the three fresh test seeds; rule accuracy ranged from 78.57% to
+  81.70%.
 - Main reproducibility and result files:
   `backend/experiments/final_evaluation.py` and
   `backend/results/final_evaluation_config.json`,
   `final_evaluation_benchmarks.csv`,
   `final_evaluation_selection_summary.csv`,
   `final_evaluation_overall_summary.csv`,
+  `final_evaluation_seed_summary.csv`,
   `final_evaluation_predictions.csv`,
   `final_evaluation_prediction_summary.csv`, and
   `final_evaluation_model_vs_rules.csv`.
@@ -84,12 +91,19 @@ It is stored in the project root next to `README.md`.
 ## Step 10 — Research reporting
 
 - Added `docs/RESEARCH_REPORT.md` with the problem, model, methodology,
-  feature-ablation and alpha-tuning results, final evaluation, discussion,
-  limitations, reproducibility paths, and foundational references.
+  focused related work, algorithm complexity, feature-ablation and
+  alpha-tuning results, final evaluation by seed, discussion, limitations,
+  reproducibility paths, and foundational references.
+- Expanded related work to cover Rice's algorithm-selection framework,
+  algorithm performance-model portfolios, SATzilla, and Adham et al.'s
+  machine-learning study of all-pairs shortest-path algorithm selection. The
+  report distinguishes that all-pairs task from ADSA's single-pair setting and
+  links the sources in its bibliography.
 - Added `docs/OPTIMIZATION_LOG.md` to record decisions, evidence, and
   limitations in the available measurements.
 - Updated `docs/PAPER_OUTLINE.md` to use the independent final evaluation and
-  treat the prior held-out data as diagnostic only.
+  treat the prior held-out data as diagnostic only; it now records that the
+  literature review is focused rather than comprehensive.
 - Corrected and updated the README's benchmark and research-status descriptions.
 - Recorded the feature-extraction comparison: on the final workload, median
   lightweight extraction time was 0.709 μs versus 584.7 μs for full extraction
@@ -110,8 +124,9 @@ It is stored in the project root next to `README.md`.
 
 ## Remaining work
 
-- Complete a fuller related-work review and extend references beyond the
-  foundational sources in the research report.
+- Before submission, document a literature search protocol and broaden the
+  focused related-work review, especially coverage of learned graph algorithm
+  selection. The current report is an internal draft, not a systematic survey.
 - Decide whether another optimization could reduce the remaining selector
   overhead enough to beat direct execution of the fastest eligible algorithm.
 - Consider evaluation on real-world graph datasets and more source/destination

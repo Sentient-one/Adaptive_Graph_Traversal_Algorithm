@@ -76,6 +76,75 @@ def write_csv(path, rows):
         writer.writerows(rows)
 
 
+def make_seed_summaries(benchmark_rows):
+    """Summarize winner quality and end-to-end timing for each test seed."""
+    grouped = defaultdict(list)
+    for row in benchmark_rows:
+        grouped[(row.get("split"), row.get("case_id"))].append(row)
+
+    by_policy_seed = defaultdict(list)
+    for (split, case_id), rows in grouped.items():
+        adaptive = next(
+            (row for row in rows if row.get("algorithm") == "adaptive"),
+            None,
+        )
+        if adaptive is None:
+            continue
+        baselines = [row for row in rows if row.get("algorithm") != "adaptive"]
+        if not baselines:
+            continue
+        fastest = min(float(row["median_seconds"]) for row in baselines)
+        winners = {
+            row["algorithm"] for row in baselines
+            if math.isclose(float(row["median_seconds"]), fastest,
+                            rel_tol=1e-9, abs_tol=1e-12)
+        }
+        key = (
+            adaptive.get("selector_policy", "unknown"),
+            int(adaptive["seed"]),
+        )
+        by_policy_seed[key].append({
+            "nontrivial": len(baselines) > 1,
+            "winner_correct": adaptive["selected_algorithm"] in winners,
+            "speedup": fastest / float(adaptive["median_seconds"]),
+            "runtime_ratio": float(adaptive["median_seconds"]) / fastest,
+            "selection_seconds": float(adaptive["median_selection_seconds"]),
+            "overhead_seconds": float(adaptive["estimated_selection_overhead_seconds"]),
+            "correctness_verified": adaptive.get("correctness_verified", "True").lower() == "true",
+        })
+
+    summaries = []
+    for (policy, seed), values in sorted(by_policy_seed.items()):
+        nontrivial = [row for row in values if row["nontrivial"]]
+        summaries.append({
+            "selector_policy": policy,
+            "seed": seed,
+            "graph_cases": len(values),
+            "nontrivial_graph_cases": len(nontrivial),
+            "winner_accuracy": statistics.mean(row["winner_correct"] for row in values),
+            "nontrivial_winner_accuracy": (
+                statistics.mean(row["winner_correct"] for row in nontrivial)
+                if nontrivial else ""
+            ),
+            "all_adaptive_costs_verified": all(
+                row["correctness_verified"] for row in values
+            ),
+            "median_best_to_adaptive_speedup": statistics.median(
+                row["speedup"] for row in values
+            ),
+            "median_adaptive_to_best_runtime_ratio": statistics.median(
+                row["runtime_ratio"] for row in values
+            ),
+            "median_selection_seconds": statistics.median(
+                row["selection_seconds"] for row in values
+            ),
+            "median_estimated_selection_overhead_seconds": statistics.median(
+                row["overhead_seconds"] for row in values
+            ),
+        })
+    return summaries
+
+
 def summarize_existing_outputs():
     """Build a compact overall summary from completed case-level reports."""
     benchmark_path = RESULTS_DIR / "final_evaluation_benchmarks.csv"
@@ -88,6 +157,10 @@ def summarize_existing_outputs():
         prediction_rows = list(csv.DictReader(file))
     with pair_path.open(newline="", encoding="utf-8") as file:
         pair_rows = list(csv.DictReader(file))
+    write_csv(
+        RESULTS_DIR / "final_evaluation_seed_summary.csv",
+        make_seed_summaries(benchmark_rows),
+    )
 
     groups = defaultdict(list)
     for row in benchmark_rows:
@@ -300,6 +373,10 @@ def main():
     save_selection_summary(
         all_rows,
         RESULTS_DIR / "final_evaluation_selection_summary.csv",
+    )
+    write_csv(
+        RESULTS_DIR / "final_evaluation_seed_summary.csv",
+        make_seed_summaries(all_rows),
     )
     write_csv(
         RESULTS_DIR / "final_evaluation_predictions.csv",

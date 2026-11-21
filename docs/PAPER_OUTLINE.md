@@ -10,8 +10,9 @@ reported from `feature_ablation_repeated_cv.csv` and `ridge_alpha_cv.csv`.
 2. **Introduction** — shortest-path problem, motivation, research question,
    contributions, and scope.
 3. **Related work** — shortest-path algorithms and algorithm-selection research;
-   foundational references are listed in `docs/RESEARCH_REPORT.md`; complete
-   the literature review and verify claims against those sources.
+   the report now includes a focused review with a directly related all-pairs
+   shortest-path selection study. Before submission, document a search protocol
+   and broaden coverage of learned graph algorithm selection.
 4. **Background and problem definition** — graph model, path-cost definition,
    supported inputs, and objectives.
 5. **Algorithms and eligibility** — BFS, Dijkstra, A*, Bellman–Ford, and
@@ -38,3 +39,9 @@ cases. Ridge beat the rule baseline on winner accuracy, but the measured
 median end-to-end runtime remained slower than running the fastest eligible
 individual algorithm directly. See `docs/RESEARCH_REPORT.md` for the current
 analysis and `docs/OPTIMIZATION_LOG.md` for decisions and measurement caveats.
+
+An internal results/report draft is in `docs/RESEARCH_REPORT.md`. It now
+includes the measured comparisons, seed variation, complexity discussion,
+limitations, and foundational references. The related-work review is a
+starting point rather than a comprehensive literature review; complete and
+verify that review before treating the paper as submission-ready.

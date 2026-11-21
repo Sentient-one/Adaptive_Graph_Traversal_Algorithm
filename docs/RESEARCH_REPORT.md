@@ -19,7 +19,7 @@ eligible algorithm directly. These findings support better selection accuracy
 than the rule baseline on this synthetic workload, but do not establish a
 runtime advantage over the best individual algorithm.
 
-## Problem and motivation
+## Introduction and problem statement
 
 The shortest-path algorithms in this project make different trade-offs. BFS
 works for equal nonnegative edge weights; Dijkstra and A* require nonnegative
@@ -33,6 +33,51 @@ to choose among available algorithms according to a performance measure, as
 framed by Rice [5]. The system retains deterministic validity checks and uses
 the learned model only to rank algorithms that are valid for the supplied
 graph.
+
+The research question is: **Can a lightweight, feature-based Ridge selector
+choose the fastest eligible shortest-path algorithm more accurately than a
+rule-based selector on generated graphs, while accounting for the cost of
+selection?** Speed, decision quality, selection overhead, memory, and
+correctness are treated as separate outcomes so better selection accuracy is
+not mistaken for faster end-to-end execution.
+
+## Related work
+
+Rice's formulation provides the general setting for this project: characterize
+problem instances with measurable features, measure candidate algorithm
+performance, and map instances to algorithms [5]. A standard portfolio pattern
+is to train algorithm-specific performance models, estimate all candidates'
+runtime for a new instance, and execute the predicted fastest one [6]. SATzilla
+applies per-instance feature and performance models to SAT solvers and also
+measures feature computation cost [7]. It is useful context for both runtime
+prediction and selector overhead, but it is not a direct comparator for
+shortest-path algorithms.
+
+The closest work found for this project is Adham, De Loera, and Zhang's study
+of machine-learning selection for the **all-pairs** shortest-path problem [8].
+They compare all-pairs Dijkstra, Floyd–Warshall, and Peng's algorithm on
+generated graph families, using features that include graph density, node
+count, and sampled degree information. Their study reports that density and
+size help distinguish which algorithm performs well. This supports the
+project's focus on instance features and measured runtime, but the task differs
+in important ways: their problem is all-pairs, their tested edge weights are
+positive, and their candidate set differs. ADSA selects one algorithm for a
+single source-to-destination query, includes negative-weight cases, and
+compares BFS, Dijkstra, A*, and Bellman–Ford. Results from the two studies are
+not directly comparable.
+
+Moore described maze-based shortest-path search [1]; Dijkstra presented a
+shortest-path method for nonnegative lengths [2]; Bellman studied a routing
+problem [3]; and Hart, Nilsson, and Raphael formalized heuristic search with an
+optimality result for A* [4]. The code adapts these algorithmic ideas to a
+common source-to-destination interface and applies explicit eligibility
+checks before performance-based selection.
+
+The present review establishes the project's relationship to general
+algorithm selection, runtime-model portfolios, and the closest located
+graph-shortest-path selection study. It is focused rather than systematic;
+additional studies and a documented search protocol should be added before
+submission.
 
 ## System and model
 
@@ -53,11 +98,23 @@ checks remove invalid algorithms; the selector chooses the eligible algorithm
 with the lowest positive finite predicted runtime. If none of the eligible
 algorithms has a trained prediction, it uses the existing rule-based fallback.
 
-The algorithms follow established shortest-path approaches: Moore's maze
-search [1], Dijkstra's shortest-path procedure [2], Bellman's routing
-formulation [3], and the heuristic-search framework for A* by Hart, Nilsson,
-and Raphael [4]. The project-specific eligibility rules and correctness
-assumptions are described in the README and implementation.
+## Algorithms, correctness, and complexity
+
+The implementation uses adjacency-list BFS, heap-based Dijkstra and A*, and
+edge relaxation for Bellman–Ford. For `V` vertices and `E` stored adjacency
+entries, their conventional worst-case time bounds are O(V+E) for BFS,
+O((V+E) log V) for heap-based Dijkstra and A*, and O(VE) for Bellman–Ford.
+Lazy heap entries can require O(V+E) auxiliary storage for Dijkstra/A*;
+Bellman–Ford also stores a flattened edge list, while BFS uses O(V) traversal
+state. A*'s graph-specific heuristic scale may require an O(E) calculation the
+first time it is requested; the graph caches that value thereafter.
+
+The regression selector's inference operates on four small models with eight
+inputs each; feature extraction and eligibility checks dominate this fixed
+model-inference work. The benchmark validates returned path costs against the
+individual algorithms for every case. The implementation also has tests for
+negative-weight cycle behavior, eligibility, and selected-path costs, but this
+report does not claim a formal proof of the implementation.
 
 ## Experimental method
 
@@ -90,6 +147,10 @@ algorithm speedup is fastest eligible algorithm runtime divided by adaptive
 end-to-end runtime; values above 1 favor the adaptive selector. The paired
 rule/Ridge speedup is rule-selector end-to-end runtime divided by Ridge
 end-to-end runtime; values above 1 favor Ridge. Timings are machine-dependent.
+The benchmark harness extracts full features before timing adaptive execution,
+which warms the graph's cached heuristic scale. Therefore selection and
+feature-extraction timings here represent a warmed graph state; a cold first
+query may incur additional feature work.
 
 ## Results
 
@@ -162,6 +223,17 @@ not evidence that the selectors distinguished between competing algorithms.
 The category-level CSV provides additional breakdowns by size, density,
 directedness, and coordinates.
 
+Accuracy was similar across the three fresh seeds, with some variation:
+
+| Selector | Test seed | Winner accuracy | Non-trivial winner accuracy | Median adaptive-to-best runtime ratio |
+|---|---:|---:|---:|---:|
+| Ridge | 303 | 93.30% | 92.19% | 1.132× |
+| Ridge | 404 | 91.07% | 89.58% | 1.126× |
+| Ridge | 505 | 93.75% | 92.71% | 1.129× |
+| Rules | 303 | 78.57% | 75.00% | 7.934× |
+| Rules | 404 | 81.70% | 78.65% | 7.551× |
+| Rules | 505 | 78.57% | 75.00% | 7.659× |
+
 Mean absolute log prediction errors on the fresh test cases were 0.524 for
 BFS, 0.448 for Dijkstra, 0.736 for A*, and 0.321 for Bellman–Ford. A* had the
 largest error and a median prediction-to-actual ratio of 0.845, indicating
@@ -185,6 +257,17 @@ at the median. Also, negative-weight cases provide no meaningful choice
 comparison because only Bellman–Ford is eligible. The positive, uniform, and
 unit-weight cases are the informative selection comparisons.
 
+## Conclusion
+
+On this synthetic test set, Model B with alpha 0.0001 chose the measured
+fastest eligible algorithm more often than the rule selector, and its
+end-to-end execution was substantially faster than the rule selector's. The
+results do not show an end-to-end speed advantage over running the fastest
+eligible algorithm directly. The supported conclusion is therefore narrower:
+the learned selector improves decision accuracy and performance relative to
+the implemented rule baseline for these generated cases, while its overhead
+still matters when the alternative is direct execution of the best algorithm.
+
 ## Limitations and next work
 
 - The final cases are synthetic and use the repository's graph generator; real
@@ -192,8 +275,10 @@ unit-weight cases are the informative selection comparisons.
 - New seeds make this a separate test set from prior runs, but it uses the
   same generator family. Only the graph-size and density grid was broadened.
 - Each graph uses one fixed source/destination pair and three timing repeats.
-- Results come from one macOS ARM64 environment (Python 3.14.6); timings may
+- Results come from one macOS ARM64 environment (Python 3.14.7); timings may
   change on other machines or workloads.
+- Timed adaptive calls use warmed graph feature caches. Cold-start latency
+  needs a separate evaluation if first-query cost is important.
 - The alpha choice prioritizes winner accuracy. A* prediction error remains
   comparatively high, and other metrics favor other alpha values.
 - A measured runtime advantage over the fastest individual algorithm was not
@@ -203,8 +288,9 @@ unit-weight cases are the informative selection comparisons.
   rejected because its overhead outweighed its benefit, but this repository
   contains no quantitative result artifact for that experiment. The claim
   should remain qualitative until its measurements are recovered.
-- Related work below provides a starting set of foundational sources; a full
-  literature review and citation-driven comparison remain to be completed.
+- The related-work section is a focused review, not a systematic survey. A
+  documented search protocol and broader coverage of learned graph algorithm
+  selection are still needed before submission.
 
 ## Reproducibility files
 
@@ -214,7 +300,8 @@ unit-weight cases are the informative selection comparisons.
   `backend/results/ridge_alpha_cv.csv`.
 - Final evaluation code, configuration, case-level data, predictions, and
   summaries: `backend/experiments/final_evaluation.py` and the
-  `backend/results/final_evaluation_*.{csv,json}` files.
+  `backend/results/final_evaluation_*.{csv,json}` files, including
+  `final_evaluation_seed_summary.csv` for seed-to-seed variation.
 - Test suite: 33 tests passed after Step 8 integration.
 - Optimization decisions and measurement caveats: `docs/OPTIMIZATION_LOG.md`.
 
@@ -235,3 +322,14 @@ unit-weight cases are the informative selection comparisons.
 5. J. R. Rice, “The Algorithm Selection Problem,” *Advances in Computers*,
    vol. 15, pp. 65–118, 1976.
    [doi:10.1016/S0065-2458(08)60520-3](https://doi.org/10.1016/S0065-2458(08)60520-3).
+6. K. Leyton-Brown, E. Nudelman, G. Andrew, J. McFadden, and Y. Shoham,
+   “A Portfolio Approach to Algorithm Selection,” in *Proceedings of the
+   18th International Joint Conference on Artificial Intelligence*, pp.
+   1542–1543, 2003. [Proceedings paper](https://ijcai.org/Proceedings/03/Papers/268.pdf).
+7. L. Xu, F. Hutter, H. H. Hoos, and K. Leyton-Brown, “SATzilla:
+   Portfolio-based Algorithm Selection for SAT,” *Journal of Artificial
+   Intelligence Research*, vol. 32, pp. 565–606, 2008.
+   [doi:10.1613/JAIR.2490](https://doi.org/10.1613/JAIR.2490).
+8. I. Adham, J. De Loera, and Z. Zhang, “(Machine) Learning to Improve the
+   Empirical Performance of Discrete Algorithms,” arXiv:2109.14271, 2021.
+   [arXiv preprint](https://arxiv.org/abs/2109.14271).
