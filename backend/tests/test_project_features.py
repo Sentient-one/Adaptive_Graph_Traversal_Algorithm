@@ -314,6 +314,88 @@ class ProjectFeatureTests(unittest.TestCase):
                 written[-1]["selector_policy"], "ridge_regression"
             )
 
+    # --------------------------------------------------
+    # NEW TESTS: BENCHMARK INSTRUMENTATION
+    # --------------------------------------------------
+
+    def test_benchmark_records_adaptive_timing_and_counters(self):
+        graph = generate_random_graph(
+            node_count=10,
+            edge_probability=0.4,
+            seed=42,
+            weight_mode="positive",
+            coordinates=True,
+        )
+
+        rows = benchmark_graph(
+            graph,
+            "0",
+            "9",
+            repeats=3,
+            metadata={"case_id": "measurement-test"},
+        )
+
+        adaptive = next(
+            row for row in rows if row["algorithm"] == "adaptive"
+        )
+
+        required_fields = [
+            "median_seconds",
+            "minimum_seconds",
+            "maximum_seconds",
+            "runtime_stddev_seconds",
+            "median_feature_extraction_seconds",
+            "median_selection_seconds",
+            "median_selected_algorithm_seconds",
+            "estimated_selection_overhead_seconds",
+            "median_explored_nodes",
+            "median_edge_scans",
+            "median_relaxation_attempts",
+        ]
+
+        for field in required_fields:
+            self.assertIn(field, adaptive)
+            self.assertNotEqual(adaptive[field], "")
+
+        self.assertGreater(adaptive["median_seconds"], 0)
+        self.assertGreater(adaptive["median_selection_seconds"], 0)
+        self.assertGreater(adaptive["median_feature_extraction_seconds"], 0)
+        self.assertGreaterEqual(adaptive["median_edge_scans"], 0)
+
+        self.assertLessEqual(
+            adaptive["minimum_seconds"],
+            adaptive["median_seconds"],
+        )
+
+        self.assertLessEqual(
+            adaptive["median_seconds"],
+            adaptive["maximum_seconds"],
+        )
+
+    def test_benchmark_runtime_statistics_exist_for_all_algorithms(self):
+        graph = generate_random_graph(
+            node_count=10,
+            edge_probability=0.4,
+            seed=21,
+            weight_mode="unit",
+            coordinates=False,
+        )
+
+        rows = benchmark_graph(
+            graph,
+            "0",
+            "9",
+            repeats=3,
+        )
+
+        for row in rows:
+            self.assertIn("median_seconds", row)
+            self.assertIn("minimum_seconds", row)
+            self.assertIn("maximum_seconds", row)
+            self.assertIn("runtime_stddev_seconds", row)
+
+            self.assertGreater(row["median_seconds"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()
