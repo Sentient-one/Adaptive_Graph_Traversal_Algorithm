@@ -7,7 +7,10 @@ from pathlib import Path
 from time import perf_counter
 
 from algorithms import astar, bfs, dijkstra, bellman_ford
-from adaptive.features import extract_features
+from adaptive.features import (
+    extract_features,
+    extract_selection_features,
+)
 from adaptive.selector import choose_algorithm, find_shortest_path
 from analysis.metrics import measure_algorithm
 
@@ -256,12 +259,22 @@ def benchmark_graph(
     # 3. Measure feature extraction separately
     # --------------------------------------------------
 
-    feature_durations = []
+    full_feature_durations = []
+    selection_feature_durations = []
 
+    # Measure complete graph feature extraction.
     for _ in range(repeats):
         start = perf_counter()
         extract_features(graph)
-        feature_durations.append(perf_counter() - start)
+        full_feature_durations.append(perf_counter() - start)
+
+    # Measure lightweight feature extraction used by the model.
+    for _ in range(repeats):
+        start = perf_counter()
+        extract_selection_features(graph)
+        selection_feature_durations.append(
+            perf_counter() - start
+        )
 
     # --------------------------------------------------
     # 4. Measure selection decision separately
@@ -369,9 +382,20 @@ def benchmark_graph(
         **_runtime_statistics(adaptive_durations),
         **_counter_statistics(adaptive_counters),
         "peak_memory_bytes": adaptive_memory,
-        "median_feature_extraction_seconds": statistics.median(
-            feature_durations
+
+        # Full and lightweight feature extraction measurements.
+        "median_full_feature_extraction_seconds": statistics.median(
+            full_feature_durations
         ),
+        "median_selection_feature_extraction_seconds": statistics.median(
+            selection_feature_durations
+        ),
+
+        # Backward compatibility: the legacy field means full extraction.
+        "median_feature_extraction_seconds": statistics.median(
+            full_feature_durations
+        ),
+
         "median_selection_seconds": statistics.median(
             selection_durations
         ),

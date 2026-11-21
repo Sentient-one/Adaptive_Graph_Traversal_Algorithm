@@ -65,18 +65,95 @@ def _get_connectivity_features(graph: Graph) -> dict:
     }
 
 
+def extract_selection_features(
+    graph: Graph,
+    include_heuristic: bool = True,
+) -> dict:
+    """
+    Extract only the features required by the
+    benchmark-trained runtime selection model.
+
+    Avoids calculating unnecessary features such as:
+    - In-degree distributions
+    - Minimum and maximum degrees
+    - Connected components
+    - Isolated node count
+
+    Uses graph properties that are already maintained
+    or cached by the Graph class.
+    """
+
+    node_count = len(graph.adjacency)
+    edge_count = graph.edge_count
+
+    # Graph density.
+    if node_count <= 1:
+        density = 0.0
+    else:
+        possible_edges = (
+            node_count * (node_count - 1)
+            if graph.directed
+            else node_count * (node_count - 1) / 2
+        )
+
+        density = edge_count / possible_edges
+
+    # Average degree.
+    # Directed: each edge contributes one outgoing adjacency entry.
+    # Undirected: each edge contributes two adjacency entries.
+    if node_count:
+        average_degree = (
+            edge_count / node_count
+            if graph.directed
+            else (2 * edge_count) / node_count
+        )
+    else:
+        average_degree = 0.0
+
+    # Weight characteristics.
+    has_negative_weights = graph.has_negative_weights()
+    uniform_weights = graph.has_uniform_weights()
+
+    # Spatial characteristics.
+    positions_available = graph.has_positions_for_all_nodes()
+
+    heuristic_scale = None
+
+    if (
+        include_heuristic
+        and positions_available
+        and not has_negative_weights
+    ):
+        heuristic_scale = graph.heuristic_scale()
+
+    return {
+        "node_count": node_count,
+        "density": density,
+        "directed": graph.directed,
+        "uniform_weights": uniform_weights,
+        "has_negative_weights": has_negative_weights,
+        "average_degree": average_degree,
+        "weight_stddev": graph.weight_stddev,
+        "positions_available": positions_available,
+        "heuristic_scale": heuristic_scale,
+    }
+
+
 def extract_features(
     graph: Graph,
     include_heuristic: bool = True
 ) -> dict:
     """
     Extract structural and weight-related features from a graph.
+
+    This function calculates the complete feature set used
+    for graph analysis and reporting.
     """
 
     node_count = len(graph.adjacency)
     edge_count = graph.edge_count
 
-    # Degree statistics
+    # Degree statistics.
     out_degrees = [
         len(edges)
         for edges in graph.adjacency.values()
@@ -90,7 +167,7 @@ def extract_features(
 
     in_degree_values = list(in_degrees.values())
 
-    # Graph density
+    # Graph density.
     if node_count <= 1:
         density = 0.0
     else:
@@ -102,14 +179,14 @@ def extract_features(
 
         density = edge_count / possible_edges
 
-    # Weight characteristics
+    # Weight characteristics.
     has_edges = edge_count > 0
     all_unit_weights = graph.has_only_unit_weights()
 
     is_weighted = has_edges and not all_unit_weights
     has_negative_weights = graph.has_negative_weights()
 
-    # A* heuristic information
+    # A* heuristic information.
     positions_available = graph.has_positions_for_all_nodes()
 
     heuristic_scale = None
@@ -121,18 +198,18 @@ def extract_features(
     ):
         heuristic_scale = graph.heuristic_scale()
 
-    # Connectivity
+    # Connectivity.
     connectivity = _get_connectivity_features(graph)
 
     return {
-        # Basic graph characteristics
+        # Basic graph characteristics.
         "node_count": node_count,
         "edge_count": edge_count,
         "density": density,
         "directed": graph.directed,
         "has_edges": has_edges,
 
-        # Weight characteristics
+        # Weight characteristics.
         "is_weighted": is_weighted,
         "all_unit_weights": all_unit_weights,
         "uniform_weights": graph.has_uniform_weights(),
@@ -143,7 +220,7 @@ def extract_features(
         "weight_stddev": graph.weight_stddev,
         "unique_weight_ratio": graph.unique_weight_ratio,
 
-        # Out-degree characteristics
+        # Out-degree characteristics.
         "average_degree": (
             sum(out_degrees) / node_count if node_count else 0.0
         ),
@@ -153,7 +230,7 @@ def extract_features(
         "minimum_degree": min(out_degrees) if out_degrees else 0,
         "maximum_degree": max(out_degrees) if out_degrees else 0,
 
-        # In-degree characteristics
+        # In-degree characteristics.
         "average_in_degree": (
             sum(in_degree_values) / node_count if node_count else 0.0
         ),
@@ -164,10 +241,10 @@ def extract_features(
             max(in_degree_values) if in_degree_values else 0
         ),
 
-        # Connectivity characteristics
+        # Connectivity characteristics.
         **connectivity,
 
-        # Spatial characteristics
+        # Spatial characteristics.
         "positions_available": positions_available,
         "heuristic_scale": heuristic_scale,
     }

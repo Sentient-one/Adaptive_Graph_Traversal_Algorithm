@@ -6,7 +6,7 @@ import math
 from pathlib import Path
 from statistics import mean
 
-from adaptive.features import extract_features
+from adaptive.features import extract_selection_features
 from adaptive.selector import eligible_algorithms, choose_algorithm
 
 
@@ -279,7 +279,7 @@ class BenchmarkRuntimeSelector:
     ) -> dict[str, float]:
 
         if features is None:
-            features = extract_features(graph)
+            features = extract_selection_features(graph)
 
         return self.predict_runtimes_from_features(features)
 
@@ -296,7 +296,7 @@ class BenchmarkRuntimeSelector:
         from prediction-based selection.
         """
 
-        features = extract_features(graph)
+        features = extract_selection_features(graph)
 
         eligible = eligible_algorithms(
             graph,

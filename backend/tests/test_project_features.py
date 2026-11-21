@@ -300,6 +300,26 @@ class ProjectFeatureTests(unittest.TestCase):
             sum(row["graph_cases"] for row in summary), 2
         )
 
+        # Verify both feature extraction measurements reach the summary.
+        for summary_row in summary:
+            self.assertIn(
+                "median_full_feature_extraction_seconds",
+                summary_row,
+            )
+            self.assertIn(
+                "median_selection_feature_extraction_seconds",
+                summary_row,
+            )
+
+            self.assertGreater(
+                summary_row["median_full_feature_extraction_seconds"],
+                0,
+            )
+            self.assertGreater(
+                summary_row["median_selection_feature_extraction_seconds"],
+                0,
+            )
+
         with tempfile.TemporaryDirectory() as directory:
             output = f"{directory}/mixed_rows.csv"
 
@@ -344,10 +364,18 @@ class ProjectFeatureTests(unittest.TestCase):
             "minimum_seconds",
             "maximum_seconds",
             "runtime_stddev_seconds",
+
+            # Feature extraction measurements
+            "median_full_feature_extraction_seconds",
+            "median_selection_feature_extraction_seconds",
             "median_feature_extraction_seconds",
+
+            # Selection measurements
             "median_selection_seconds",
             "median_selected_algorithm_seconds",
             "estimated_selection_overhead_seconds",
+
+            # Algorithm counters
             "median_explored_nodes",
             "median_edge_scans",
             "median_relaxation_attempts",
@@ -359,7 +387,22 @@ class ProjectFeatureTests(unittest.TestCase):
 
         self.assertGreater(adaptive["median_seconds"], 0)
         self.assertGreater(adaptive["median_selection_seconds"], 0)
-        self.assertGreater(adaptive["median_feature_extraction_seconds"], 0)
+
+        # Full feature extraction.
+        self.assertGreater(
+            adaptive["median_full_feature_extraction_seconds"], 0
+        )
+
+        # Lightweight feature extraction used by the model.
+        self.assertGreater(
+            adaptive["median_selection_feature_extraction_seconds"], 0
+        )
+
+        # Backward compatibility.
+        self.assertGreater(
+            adaptive["median_feature_extraction_seconds"], 0
+        )
+
         self.assertGreaterEqual(adaptive["median_edge_scans"], 0)
 
         self.assertLessEqual(

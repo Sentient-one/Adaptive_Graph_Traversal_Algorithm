@@ -46,7 +46,8 @@ def summarize_selection(rows: list[dict]) -> list[dict]:
     - Adaptive end-to-end runtime.
     - Adaptive runtime ratio and speedup.
     - Runtime variability.
-    - Feature extraction, selection, and estimated overhead.
+    - Full and selection-specific feature extraction.
+    - Selection, selected algorithm runtime, and estimated overhead.
     """
 
     # Group algorithm records by graph case.
@@ -161,8 +162,18 @@ def summarize_selection(rows: list[dict]) -> list[dict]:
             adaptive.get("estimated_selection_overhead_seconds")
         )
 
-        feature_extraction_time = _to_float(
-            adaptive.get("median_feature_extraction_seconds")
+        # Full feature extraction.
+        # Fall back to the legacy field for older benchmark CSV files.
+        full_feature_extraction_time = _to_float(
+            adaptive.get(
+                "median_full_feature_extraction_seconds",
+                adaptive.get("median_feature_extraction_seconds"),
+            )
+        )
+
+        # Lightweight extraction used by the performance model.
+        selection_feature_extraction_time = _to_float(
+            adaptive.get("median_selection_feature_extraction_seconds")
         )
 
         selection_time = _to_float(
@@ -203,7 +214,10 @@ def summarize_selection(rows: list[dict]) -> list[dict]:
             "runtime_stddev": runtime_stddev,
             "runtime_cv": runtime_cv,
             "selection_overhead": selection_overhead,
-            "feature_extraction_time": feature_extraction_time,
+            "full_feature_extraction_time": full_feature_extraction_time,
+            "selection_feature_extraction_time": (
+                selection_feature_extraction_time
+            ),
             "selection_time": selection_time,
             "selected_algorithm_time": selected_algorithm_time,
             "best_algorithm_time": best_time,
@@ -322,8 +336,19 @@ def summarize_selection(rows: list[dict]) -> list[dict]:
             ]),
 
             # Selection overhead and instrumentation.
+            "median_full_feature_extraction_seconds": _median([
+                item["full_feature_extraction_time"]
+                for item in values
+            ]),
+
+            "median_selection_feature_extraction_seconds": _median([
+                item["selection_feature_extraction_time"]
+                for item in values
+            ]),
+
+            # Backward compatibility with older reports.
             "median_feature_extraction_seconds": _median([
-                item["feature_extraction_time"]
+                item["full_feature_extraction_time"]
                 for item in values
             ]),
 
