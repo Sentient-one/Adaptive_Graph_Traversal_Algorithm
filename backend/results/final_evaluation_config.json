@@ -1,0 +1,51 @@
+{
+  "evaluation": "independent_final",
+  "training_data": "/Users/mac/Desktop/MyProjects/ADSA_project/backend/results/development_benchmarks.csv",
+  "training_split": "development only",
+  "ridge_alpha": 0.0001,
+  "features": [
+    "nodes",
+    "density",
+    "directed",
+    "uniform_weights",
+    "has_negative_weights",
+    "weight_stddev",
+    "positions_available",
+    "heuristic_scale"
+  ],
+  "node_counts": [
+    50,
+    100,
+    200,
+    300
+  ],
+  "densities": [
+    0.03,
+    0.1,
+    0.3,
+    0.55
+  ],
+  "weight_modes": [
+    "unit",
+    "uniform",
+    "positive",
+    "negative"
+  ],
+  "coordinate_options": [
+    false,
+    true
+  ],
+  "nonnegative_directed_options": [
+    false,
+    true
+  ],
+  "test_seeds": [
+    303,
+    404,
+    505
+  ],
+  "repeats": 3,
+  "graph_cases": 672,
+  "comparison": "Ridge selector vs rule selector and eligible algorithms",
+  "speedup_definition": "rule selector runtime / Ridge selector runtime; >1 favors Ridge"
+}
