@@ -1,0 +1,58 @@
+{
+  "data": "/Users/mac/Desktop/MyProjects/ADSA_project/backend/results/development_benchmarks.csv",
+  "cases": 252,
+  "seeds": [
+    11,
+    22,
+    42,
+    101,
+    202
+  ],
+  "folds": 5,
+  "target": "log median runtime",
+  "feature_sets": {
+    "model_b": [
+      "nodes",
+      "density",
+      "directed",
+      "uniform_weights",
+      "has_negative_weights",
+      "weight_stddev",
+      "positions_available",
+      "heuristic_scale"
+    ],
+    "model_b_plus_endpoints": [
+      "nodes",
+      "density",
+      "directed",
+      "uniform_weights",
+      "has_negative_weights",
+      "weight_stddev",
+      "positions_available",
+      "heuristic_scale",
+      "source_degree",
+      "destination_degree",
+      "endpoint_heuristic_distance",
+      "mean_weight",
+      "unique_weight_ratio"
+    ]
+  },
+  "models": {
+    "ridge": {
+      "alpha": 0.0001,
+      "standardize": true
+    },
+    "random_forest": {
+      "n_estimators": 100,
+      "min_samples_leaf": 2,
+      "max_features": 1.0
+    },
+    "gradient_boosting": {
+      "n_estimators": 100,
+      "learning_rate": 0.05,
+      "max_depth": 2,
+      "loss": "huber"
+    }
+  },
+  "note": "Development-only repeated grouped CV; does not change production model or use final-test outcomes."
+}

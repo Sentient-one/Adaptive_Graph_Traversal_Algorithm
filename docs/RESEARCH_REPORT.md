@@ -73,11 +73,19 @@ optimality result for A* [4]. The code adapts these algorithmic ideas to a
 common source-to-destination interface and applies explicit eligibility
 checks before performance-based selection.
 
-The present review establishes the project's relationship to general
-algorithm selection, runtime-model portfolios, and the closest located
-graph-shortest-path selection study. It is focused rather than systematic;
-additional studies and a documented search protocol should be added before
-submission.
+ASlib provides a benchmark representation for algorithm-selection studies,
+while the later survey by Kerschke et al. places feature-based selection
+alongside configuration and scheduling [9, 10]. Both reinforce that metrics
+and data splits must be reported with the selector, rather than treating a
+classifier's choice accuracy as the whole outcome. Learning-augmented SSSP
+work is also relevant but addresses a different mechanism: predictions guide
+the path algorithm's execution rather than select one algorithm from a
+portfolio [11, 12].
+
+The review is a focused scoping review. A first search protocol and screened
+set are now recorded in `docs/LITERATURE_SEARCH_PROTOCOL.md`; the protocol
+does not establish exhaustive coverage, and additional database searching and
+citation checks are still needed before submission.
 
 ## System and model
 
@@ -288,9 +296,9 @@ still matters when the alternative is direct execution of the best algorithm.
   rejected because its overhead outweighed its benefit, but this repository
   contains no quantitative result artifact for that experiment. The claim
   should remain qualitative until its measurements are recovered.
-- The related-work section is a focused review, not a systematic survey. A
-  documented search protocol and broader coverage of learned graph algorithm
-  selection are still needed before submission.
+- The related-work section is a focused scoping review, not a systematic
+  survey. Broader database searching and citation verification are still
+  needed before submission.
 
 ## Reproducibility files
 
@@ -333,3 +341,16 @@ still matters when the alternative is direct execution of the best algorithm.
 8. I. Adham, J. De Loera, and Z. Zhang, “(Machine) Learning to Improve the
    Empirical Performance of Discrete Algorithms,” arXiv:2109.14271, 2021.
    [arXiv preprint](https://arxiv.org/abs/2109.14271).
+9. B. Bischl et al., “ASlib: A Benchmark Library for Algorithm Selection,”
+   *Artificial Intelligence*, vol. 237, pp. 41–58, 2016.
+   [doi:10.1016/j.artint.2016.04.003](https://doi.org/10.1016/j.artint.2016.04.003).
+10. P. Kerschke et al., “Automated Algorithm Selection: Survey and
+    Perspectives,” *Evolutionary Computation*, vol. 27, no. 1, pp. 3–45, 2019.
+    [doi:10.1162/evco_a_00242](https://doi.org/10.1162/evco_a_00242).
+11. J. Y. Chen, S. Silwal, A. Vakilian, and F. Zhang, “Faster Fundamental Graph
+    Algorithms via Learned Predictions,” arXiv:2204.12055, 2022.
+    [arXiv preprint](https://arxiv.org/abs/2204.12055).
+12. W. Feijen and G. Schäfer, “Dijkstra's Algorithm with Predictions to Solve
+    the Single-Source Many-Targets Shortest-Path Problem,” arXiv:2112.11927,
+    2021. [arXiv preprint](https://arxiv.org/abs/2112.11927).
+    [arXiv record](https://arxiv.org/abs/2112.11927).

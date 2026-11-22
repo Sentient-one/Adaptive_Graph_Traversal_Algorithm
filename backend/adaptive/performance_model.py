@@ -259,30 +259,29 @@ class BenchmarkRuntimeSelector:
         self,
         features: dict,
     ) -> dict[str, float]:
-
-        vector = [
+        values = _vector(features)
+        vector = (
             1.0,
-            *self._standardize(_vector(features)),
-        ]
+            *((value - center) / scale
+              for value, center, scale in zip(
+                  values, self.centers, self.scales
+              )),
+        )
 
-        return {
-            algorithm: math.exp(
-                max(
-                    -700,
-                    min(
-                        700,
-                        sum(
-                            a * b
-                            for a, b in zip(
-                                coefficients,
-                                vector,
-                            )
-                        ),
-                    ),
-                )
+        predictions = {}
+        for algorithm, coefficients in self.models.items():
+            # This small fixed-width dot product is faster as a direct loop
+            # than as a generator passed to sum; the numerical calculation
+            # and log-runtime model remain unchanged.
+            log_runtime = 0.0
+            for coefficient, value in zip(coefficients, vector):
+                log_runtime += coefficient * value
+
+            predictions[algorithm] = math.exp(
+                max(-700, min(700, log_runtime))
             )
-            for algorithm, coefficients in self.models.items()
-        }
+
+        return predictions
 
     def predict_runtimes(
         self,

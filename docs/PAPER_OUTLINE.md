@@ -1,18 +1,21 @@
 # ADSA paper completion outline
 
-Use `backend/results/final_evaluation_*.csv` for final outcome claims. The
-existing held-out benchmark was used for diagnostic analysis and is not the
-untouched final test set. Development-only feature and alpha decisions are
-reported from `feature_ablation_repeated_cv.csv` and `ridge_alpha_cv.csv`.
+Use `backend/results/final_evaluation_*.csv` for synthetic final outcome
+claims, `real_world_*.csv` for the bounded DIMACS road samples, and
+`statistical_*.csv` plus `paired_comparisons.csv` for uncertainty and paired
+analysis. The existing held-out benchmark was used for diagnostic analysis
+and is not the untouched final test set. Development-only feature and alpha
+decisions are reported from `feature_ablation_repeated_cv.csv` and
+`ridge_alpha_cv.csv`.
 
 1. **Abstract** — research question, method, evaluation scope, and measured
    conclusion.
 2. **Introduction** — shortest-path problem, motivation, research question,
    contributions, and scope.
 3. **Related work** — shortest-path algorithms and algorithm-selection research;
-   the report now includes a focused review with a directly related all-pairs
-   shortest-path selection study. Before submission, document a search protocol
-   and broaden coverage of learned graph algorithm selection.
+   the report includes a focused scoping review, an initial search protocol,
+   and the directly related all-pairs shortest-path selection study. Broader
+   database searching and citation/version verification remain before submission.
 4. **Background and problem definition** — graph model, path-cost definition,
    supported inputs, and objectives.
 5. **Algorithms and eligibility** — BFS, Dijkstra, A*, Bellman–Ford, and
@@ -22,9 +25,11 @@ reported from `feature_ablation_repeated_cv.csv` and `ridge_alpha_cv.csv`.
 7. **Correctness and complexity** — shortest-path guarantees, selector
    overhead, and algorithm-specific work counters.
 8. **Experimental methodology** — graph families, sizes, densities, seeds,
-   development/held-out separation, repeats, metrics, and environment.
+   development/held-out separation, real-world subgraph sampling, repeats,
+   metrics, and environment.
 9. **Results** — report category-level independent final results, cross-
-   validation variability, and prediction errors.
+   validation variability, prediction errors, real-world results, and
+   statistical comparisons.
 10. **Discussion** — cases helped or hurt by selection, runtime overhead, and
     behavior on negative-weight graphs.
 11. **Limitations and future work** — dataset coverage, hardware dependence,
@@ -45,3 +50,9 @@ includes the measured comparisons, seed variation, complexity discussion,
 limitations, and foundational references. The related-work review is a
 starting point rather than a comprehensive literature review; complete and
 verify that review before treating the paper as submission-ready.
+
+The real-world and paired statistical results are documented in
+`docs/REAL_WORLD_EVALUATION.md` and `docs/STATISTICAL_ANALYSIS.md`. The
+real-world set contains five graph/weight inputs from four geographic
+networks, using bounded 200-node samples; it does not yet meet the target of
+five independent networks or establish full-network generalization.

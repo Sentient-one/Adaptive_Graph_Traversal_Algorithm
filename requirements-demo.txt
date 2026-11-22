@@ -1,0 +1,2 @@
+# Optional dependency for the interactive demonstration only.
+streamlit==1.58.0

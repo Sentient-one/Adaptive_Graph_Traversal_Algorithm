@@ -1,0 +1,25 @@
+evaluation,dataset_or_stratum,selector_policy,metric,estimate,ci95_low,ci95_high,sample_count,method
+synthetic_final,all_synthetic_test_cases,ridge_regression,winner_accuracy,0.9270833333333334,0.9049041513694932,0.9444074623358841,672,Wilson score; query-level descriptive interval
+synthetic_final,all_synthetic_test_cases,rules,winner_accuracy,0.7961309523809523,0.764027739836568,0.8248677693180315,672,Wilson score; query-level descriptive interval
+synthetic_final,weight_mode:negative,ridge_regression,winner_accuracy,1.0,0.9615244121423243,1.0,96,Wilson score; query-level descriptive interval
+synthetic_final,weight_mode:negative,rules,winner_accuracy,1.0,0.9615244121423243,1.0,96,Wilson score; query-level descriptive interval
+synthetic_final,weight_mode:positive,ridge_regression,winner_accuracy,0.9427083333333334,0.9003376167838831,0.9677114726361785,192,Wilson score; query-level descriptive interval
+synthetic_final,weight_mode:positive,rules,winner_accuracy,0.6927083333333334,0.6242009256966623,0.7536557367567762,192,Wilson score; query-level descriptive interval
+synthetic_final,weight_mode:uniform,ridge_regression,winner_accuracy,0.9114583333333334,0.8627904693526963,0.9439845666965373,192,Wilson score; query-level descriptive interval
+synthetic_final,weight_mode:uniform,rules,winner_accuracy,0.796875,0.7344044198137055,0.8476990872091593,192,Wilson score; query-level descriptive interval
+synthetic_final,weight_mode:unit,ridge_regression,winner_accuracy,0.890625,0.8385842176755814,0.927341449459767,192,Wilson score; query-level descriptive interval
+synthetic_final,weight_mode:unit,rules,winner_accuracy,0.796875,0.7344044198137055,0.8476990872091593,192,Wilson score; query-level descriptive interval
+real_world_sampled,ALL_FIVE_GRAPH_INPUTS,ridge_regression,winner_accuracy,0.44,0.34672026630160796,0.5377189534832302,100,Wilson score; query-level descriptive interval
+real_world_sampled,ALL_FIVE_GRAPH_INPUTS,ridge_regression,winner_accuracy,0.44,0.06666666666666667,1.0,100,"geographic-network cluster bootstrap; four networks, exploratory"
+real_world_sampled,ALL_FIVE_GRAPH_INPUTS,rules,winner_accuracy,0.96,0.9016292856411208,0.9843366960084523,100,Wilson score; query-level descriptive interval
+real_world_sampled,ALL_FIVE_GRAPH_INPUTS,rules,winner_accuracy,0.96,0.8875,1.0,100,"geographic-network cluster bootstrap; four networks, exploratory"
+real_world_sampled,DIMACS9-COL-distance,ridge_regression,winner_accuracy,0.0,0.0,0.16112515805281938,20,Wilson score; query-level descriptive interval
+real_world_sampled,DIMACS9-COL-distance,rules,winner_accuracy,1.0,0.8388748419471806,1.0,20,Wilson score; query-level descriptive interval
+real_world_sampled,DIMACS9-COL-travel-time,ridge_regression,winner_accuracy,0.05,0.008881448800795402,0.23613119344674205,20,Wilson score; query-level descriptive interval
+real_world_sampled,DIMACS9-COL-travel-time,rules,winner_accuracy,0.95,0.763868806553258,0.9911185511992047,20,Wilson score; query-level descriptive interval
+real_world_sampled,DIMACS9-FLA-distance,ridge_regression,winner_accuracy,1.0,0.8388748419471806,1.0,20,Wilson score; query-level descriptive interval
+real_world_sampled,DIMACS9-FLA-distance,rules,winner_accuracy,1.0,0.8388748419471806,1.0,20,Wilson score; query-level descriptive interval
+real_world_sampled,DIMACS9-NY-distance,ridge_regression,winner_accuracy,0.15,0.052368745896216595,0.36041886474075696,20,Wilson score; query-level descriptive interval
+real_world_sampled,DIMACS9-NY-distance,rules,winner_accuracy,0.85,0.6395811352592431,0.9476312541037835,20,Wilson score; query-level descriptive interval
+real_world_sampled,DIMACS9-Rome99-distance,ridge_regression,winner_accuracy,1.0,0.8388748419471806,1.0,20,Wilson score; query-level descriptive interval
+real_world_sampled,DIMACS9-Rome99-distance,rules,winner_accuracy,1.0,0.8388748419471806,1.0,20,Wilson score; query-level descriptive interval

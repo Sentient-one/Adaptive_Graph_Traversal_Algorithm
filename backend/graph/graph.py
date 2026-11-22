@@ -144,11 +144,13 @@ class Graph:
             return self._heuristic_scale_cache or 0.0
 
         scale = float("inf")
+        positions = self.positions
+        hypot = math.hypot
         for start, neighbors in self.adjacency.items():
-            x1, y1 = self.positions[start]
+            x1, y1 = positions[start]
             for end, weight in neighbors:
-                x2, y2 = self.positions[end]
-                distance = math.hypot(x2 - x1, y2 - y1)
+                x2, y2 = positions[end]
+                distance = hypot(x2 - x1, y2 - y1)
                 if distance > 0:
                     scale = min(scale, weight / distance)
         self._heuristic_scale_cache = 0.0 if scale == float("inf") else scale

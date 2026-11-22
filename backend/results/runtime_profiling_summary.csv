@@ -1,0 +1,16 @@
+metric,case_count,median_ns,p90_ns,minimum_ns,maximum_ns
+cold_feature_extraction_median_ns,9,917,74708,667,1626500
+warm_feature_extraction_median_ns,9,500,625,500,625
+warm_eligibility_median_ns,9,1042,1125,750,1125
+warm_prediction_median_ns,9,3708,3750,3667,4000
+baseline_prediction_median_ns,9,4416,4541,4375,4583
+optimized_prediction_median_ns,9,3750,3833,3708,3875
+warm_winner_comparison_median_ns,9,167,208,125,209
+cold_complete_selection_median_ns,9,10083,80875,6625,1642750
+warm_complete_selection_median_ns,9,5750,5833,5667,6000
+adaptive_end_to_end_median_ns,9,183000,1294250,15292,5084750
+selected_algorithm_median_ns,9,177208,1309584,8708,5117292
+oracle_algorithm_median_ns,9,177208,1309584,8708,5117292
+estimated_selection_overhead_ns,9,7000,11334,-77208,22084
+total_runtime_regret_ns,9,6500,10959,-32542,19792
+suboptimal_algorithm_regret_ns,9,0,0,0,0

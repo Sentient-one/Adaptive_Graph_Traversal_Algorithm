@@ -86,8 +86,64 @@ performance claims.
 
 ## Research paper status
 
-The implementation now supports a reproducible comparison workflow, and a
-fresh independent final evaluation is recorded. The paper still needs a full
-literature review, final editing, and conclusions limited to the measured
-trade-offs. The prior held-out data remains diagnostic and is not the final
-test set.
+The repository now includes independent synthetic results, a bounded
+real-world road-network evaluation, paired statistical summaries, and a
+runtime-profiling experiment. The synthetic-trained Ridge model did not
+generalize well on the sampled road-network cases; see
+`docs/REAL_WORLD_EVALUATION.md` and `docs/STATISTICAL_ANALYSIS.md`. The real-
+world experiment covers four geographic networks and five graph/weight
+inputs, with a 200-node sample from each input. It is not a full-network or
+five-independent-network evaluation.
+
+The research report remains an internal draft. An initial focused literature
+search protocol, review, and comparison table are recorded in
+`docs/LITERATURE_SEARCH_PROTOCOL.md`, `docs/LITERATURE_REVIEW.md`, and
+`docs/LITERATURE_COMPARISON.csv`; broader database searches, a larger
+independent real-world network set, paper figures and final editing are still
+needed. The prior synthetic final set remains reserved for reporting and must
+not be used for further model tuning.
+
+## Reproduce the new studies
+
+From the project root:
+
+```bash
+PYTHONPATH=backend python backend/experiments/runtime_profiling.py
+PYTHONPATH=backend python backend/experiments/heuristic_cache_profiling.py
+PYTHONPATH=backend python backend/experiments/real_world_evaluation.py
+PYTHONPATH=backend python backend/experiments/statistical_analysis.py
+python -m pip install -r requirements-experiments.txt
+PYTHONPATH=backend python backend/experiments/model_comparison_cv.py
+```
+
+## Interactive demonstration
+
+The optional Streamlit interface shows graph features, eligibility, runtime
+predictions, selected paths, and same-query comparisons across eligible
+algorithms. It keeps the measured fastest eligible algorithm as an after-the-
+run comparison; the selector does not know the oracle choice in advance.
+
+```bash
+python -m pip install -r requirements-demo.txt
+PYTHONPATH=backend python -m streamlit run backend/demo_app.py
+```
+
+See `docs/DEMONSTRATION_GUIDE.md` for scenario and timing notes and
+`docs/PRESENTATION_OUTLINE.md` for the current talk structure.
+
+A reviewed 15-slide live presentation is available in the ADSA Codex project
+session. The local outline and demonstration guide remain the editable
+repository references for that presentation.
+
+The real-world study requires network access on its first run and stores
+downloaded inputs under ignored `data/real_world/`. Runtime profiling and
+heuristic-cache profiling and real-world evaluation overwrite only their own
+named outputs. Statistical
+analysis reads the saved synthetic and real-world results and writes its own
+summary files. Do not rerun `backend/experiments/final_evaluation.py` or
+`backend/experiments/run_benchmarks.py` when preserving the existing historical
+evaluation files; those scripts regenerate their result paths.
+
+The model-comparison command is optional and uses scikit-learn only for its
+development-only Ridge/Random-Forest/Gradient-Boosting cross-validation. It
+does not modify the production selector.

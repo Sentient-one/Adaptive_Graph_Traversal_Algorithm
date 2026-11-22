@@ -1,0 +1,11 @@
+relationship,sample_count,pearson_r
+density_vs_average_degree,3840,0.7304493253304918
+nodes_vs_bfs_runtime,768,0.5777188716871672
+density_vs_bfs_runtime,768,0.5148965264578073
+nodes_vs_dijkstra_runtime,1152,0.624247650995428
+density_vs_dijkstra_runtime,1152,0.4785559348876971
+nodes_vs_astar_runtime,576,0.5624896218814643
+density_vs_astar_runtime,576,0.3083106412681885
+nodes_vs_bellman_ford_runtime,1344,0.6446582239276694
+density_vs_bellman_ford_runtime,1344,0.5134332785110061
+heuristic_scale_vs_astar_runtime,576,-0.15509810241013144

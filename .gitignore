@@ -25,6 +25,9 @@ __pycache__/
 # Temporary files
 *.log
 *.tmp
+
+# Downloaded real-world graph inputs (reproducible from dataset manifest)
+/data/real_world/
 *.swp
 
 # Coverage reports
